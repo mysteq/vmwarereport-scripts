@@ -4,9 +4,9 @@
 # Install-Module -Name VMware.PowerCLI
 # Install-Module -Name ImportExcel
 
-$xlfile = "C:\temp\vCenterClusterInfo-withVM-"+ $enddate +".xlsx"
+$xlfile-prefix = "vCenterClusterInfo-withVM-"
 
-Connect-VIServer -Server x.x.x.x, x.x.x.x
+Connect-VIServer -Server vcenter.example.techie.cloud
 
 $report = Foreach($vc in $global:DefaultVIServers){
   foreach($dc in Get-Datacenter -Server $vc){
@@ -49,6 +49,7 @@ $report2 = Foreach($vc in $global:DefaultVIServers){
 }
 $enddate = (Get-Date).tostring("yyyyMMdd")
 Remove-Item $xlfile -ErrorAction SilentlyContinue
+$xlfile = $xlfile-prefix + $enddate +".xlsx"
 $excel = Open-ExcelPackage -Path "$xlfile" -Create
 $excel = $report | Export-Excel -ExcelPackage $excel -AutoSize -WorkSheetname "vCenter Clusters Info" -AutoFilter -tablename vCenter -tablestyle Medium2 -PassThru
 Add-PivotTable -ExcelPackage $excel -PivotTableName "Cluster Summary" -SourceRange $excel.Workbook.Worksheets[1].Tables[0].Address -PivotRows Datacenter,Cluster -PivotData @{"ESXi Cores"="sum";"ESXi CPU Count"="sum";"Name"="count"} -PivotDataToColumn -PivotTotals "None" -NoTotalsInPivot -Activate
